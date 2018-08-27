@@ -2,8 +2,11 @@ module Schedulable
   module Model
     class Schedule  < ActiveRecord::Base
 
+      serialize :minute_of_hour
+      serialize :hour_of_day
       serialize :day
       serialize :day_of_week, Hash
+      serialize :day_of_month
 
       belongs_to :schedulable, polymorphic: true
 
@@ -14,7 +17,8 @@ module Schedulable
       validates_presence_of :time
       validates_presence_of :date, if: Proc.new { |schedule| schedule.rule == 'singular' }
       validate :validate_day, if: Proc.new { |schedule| schedule.rule == 'weekly' }
-      validate :validate_day_of_week, if: Proc.new { |schedule| schedule.rule == 'monthly' }
+      validate :validate_day_of_week, if: Proc.new { |schedule| schedule.rule == 'monthly' && schedule.day_of_month.blank? }
+      validate :validate_day_of_month, if: Proc.new { |schedule| schedule.rule == 'monthly' && schedule.day_of_week.blank? }
 
       def to_icecube
         return @schedule
@@ -79,6 +83,10 @@ module Schedulable
             rule.count(self.count.to_i)
           end
 
+          # mins and hours
+          rule.minute_of_hour(minute_of_hour.to_i) if minute_of_hour.present?
+          rule.hour_of_day(hour_of_day.to_i) if hour_of_day.present?
+
           if self.day
             days = self.day.reject(&:empty?)
             if self.rule == 'weekly'
@@ -86,11 +94,15 @@ module Schedulable
                 rule.day(day.to_sym)
               end
             elsif self.rule == 'monthly'
-              days = {}
-              day_of_week.each do |weekday, value|
-                days[weekday.to_sym] = value.reject(&:empty?).map { |x| x.to_i }
+              if day_of_week.present?
+                days = {}
+                day_of_week.each do |weekday, value|
+                  days[weekday.to_sym] = value.reject(&:empty?).map { |x| x.to_i }
+                end
+                rule.day_of_week(days)
+              elsif day_of_month.present?
+                rule.day_of_month(self.day_of_month.map{ |x| x.to_i})
               end
-              rule.day_of_week(days)
             end
           end
           @schedule.add_recurrence_rule(rule)

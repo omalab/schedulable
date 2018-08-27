@@ -8,9 +8,12 @@ class CreateSchedules < ActiveRecord::Migration
       
       t.string :rule
       t.string :interval
-      
+
+      t.text :minute_of_hour
+      t.text :hour_of_day
       t.text :day
       t.text :day_of_week
+      t.text :day_of_month
       
       t.datetime :until
       t.integer :count
