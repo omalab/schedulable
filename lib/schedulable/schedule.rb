@@ -74,35 +74,27 @@ module Schedulable
           self.interval = self.interval.present? ? self.interval.to_i : 1
 
           rule = IceCube::Rule.send("#{self.rule}", self.interval)
-
-          if self.until
-            rule.until(self.until)
-          end
-
-          if self.count && self.count.to_i > 0
-            rule.count(self.count.to_i)
-          end
+          rule.until(self.until) if self.until
+          rule.count(self.count.to_i) if self.count.to_i > 0
 
           # mins and hours
           rule.minute_of_hour(minute_of_hour.to_i) if minute_of_hour.present?
           rule.hour_of_day(hour_of_day.to_i) if hour_of_day.present?
 
-          if self.day
-            days = self.day.reject(&:empty?)
-            if self.rule == 'weekly'
-              days.each do |day|
-                rule.day(day.to_sym)
+          days = self.day.reject(&:empty?) if self.day
+          if self.rule == 'weekly'
+            days.each do |day|
+              rule.day(day.to_sym)
+            end
+          elsif self.rule == 'monthly'
+            if day_of_week.present?
+              days = {}
+              day_of_week.each do |weekday, value|
+                days[weekday.to_sym] = value.reject(&:empty?).map { |x| x.to_i }
               end
-            elsif self.rule == 'monthly'
-              if day_of_week.present?
-                days = {}
-                day_of_week.each do |weekday, value|
-                  days[weekday.to_sym] = value.reject(&:empty?).map { |x| x.to_i }
-                end
-                rule.day_of_week(days)
-              elsif day_of_month.present?
-                rule.day_of_month(self.day_of_month.map{ |x| x.to_i})
-              end
+              rule.day_of_week(days)
+            elsif day_of_month.present?
+              rule.day_of_month(day_of_month.map{ |x| x.to_i})
             end
           end
           @schedule.add_recurrence_rule(rule)
