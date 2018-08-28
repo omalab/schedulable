@@ -87,15 +87,8 @@ module Schedulable
               rule.day(day.to_sym)
             end
           elsif self.rule == 'monthly'
-            if day_of_week.present?
-              days = {}
-              day_of_week.each do |weekday, value|
-                days[weekday.to_sym] = value.reject(&:empty?).map { |x| x.to_i }
-              end
-              rule.day_of_week(days)
-            elsif day_of_month.present?
-              rule.day_of_month(day_of_month.map{ |x| x.to_i})
-            end
+            rule.day_of_week(day_of_week) if day_of_week.present?
+            rule.day_of_month(day_of_month.map{ |x| x.to_i}) if day_of_month.present?
           end
           @schedule.add_recurrence_rule(rule)
         end
@@ -114,7 +107,7 @@ module Schedulable
       def validate_day_of_week
         any = false
         day_of_week.each { |key, value|
-          value.reject! { |c| c.empty? }
+          value.reject! { |c| c.to_s.empty? }
           if value.length > 0
             any = true
             break
