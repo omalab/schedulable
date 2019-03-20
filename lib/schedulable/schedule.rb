@@ -89,6 +89,10 @@ module Schedulable
           elsif self.rule == 'monthly'
             rule.day_of_week(day_of_week) if day_of_week.present?
             rule.day_of_month(day_of_month.map{ |x| x.to_i}) if day_of_month.present?
+          elsif self.rule == 'yearly'
+            rule.day_of_week(day_of_week) if day_of_week.present?
+            rule.day_of_month(day_of_month.map{ |x| x.to_i}) if day_of_month.present?
+            rule.month_of_year(month_of_year.map{ |x| x.to_i}) if month_of_year.present?
           end
           @schedule.add_recurrence_rule(rule)
         end
