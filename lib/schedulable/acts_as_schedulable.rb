@@ -10,7 +10,7 @@ module Schedulable
     module ClassMethods
       
       def acts_as_schedulable(name, options = {})
-        
+
         name||= :schedule
         attribute = :date
         

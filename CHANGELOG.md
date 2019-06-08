@@ -3,6 +3,17 @@ schedulable
 
 > Changelog
 
+
+v0.0.14
+-------
+
+#### Enhancements 
+* Added yearly option
+
+#### Bugfix
+* Fixed month_of_year option
+* Fixed I18n.locale option
+
 master
 ------
 

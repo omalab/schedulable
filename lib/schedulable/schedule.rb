@@ -1,3 +1,4 @@
+require 'will_paginate/active_record'
 module Schedulable
   module Model
     class Schedule  < ActiveRecord::Base
@@ -29,16 +30,16 @@ module Schedulable
         if self.rule == 'singular'
           # Return formatted datetime for singular rules
           datetime = DateTime.new(date.year, date.month, date.day, time.hour, time.min, time.sec, time.zone)
-          message = I18n.localize(datetime)
+          message = ::I18n.localize(datetime)
         else
           # For other rules, refer to icecube
           begin
             message = @schedule.to_s
           rescue Exception
             locale = I18n.locale
-            I18n.locale = :en
+            ::I18n.locale = :en
             message = @schedule.to_s
-            I18n.locale = locale
+            ::I18n.locale = locale
           end
         end
         return message
@@ -92,7 +93,11 @@ module Schedulable
           elsif self.rule == 'yearly'
             rule.day_of_week(day_of_week) if day_of_week.present?
             rule.day_of_month(day_of_month.map{ |x| x.to_i}) if day_of_month.present?
-            rule.month_of_year(month_of_year.map{ |x| x.to_i}) if month_of_year.present?
+            if month_of_year.present?
+              rule.month_of_year(month_of_year.split(',').map{ |x| x.to_i}) if month_of_year.is_a?(String)
+              rule.month_of_year(month_of_year.map{ |x| x.to_i}) if month_of_year.is_a?(Array)
+              rule.month_of_year([month_of_year]) if month_of_year.is_a?(Integer)
+            end
           end
           @schedule.add_recurrence_rule(rule)
         end
@@ -124,3 +129,18 @@ module Schedulable
     end
   end
 end
+
+Kaminari.configure do |config|
+  config.page_method_name = :per_page_kaminari
+end
+
+module WillPaginate
+  module ActiveRecord
+    module RelationMethods
+      alias_method :total_count, :count
+    end
+  end
+end
+
+::ActiveRecord::Base.send :extend, Kaminari
+::ActiveRecord::Base.send :include, WillPaginate
