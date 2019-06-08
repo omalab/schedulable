@@ -13,6 +13,20 @@ gemspec
 # To use debugger
 # gem 'debugger'
 
+git_source(:github) do |repo_name|
+  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?('/')
+  "https://github.com/#{repo_name}.git"
+end
+
+git_source(:omalab) do |repo_name|
+  repo_name = "omalab/#{repo_name}" unless repo_name.include?('/')
+  "https://#{ENV['GITHUB_CREDENTIALS']}@github.com/#{repo_name}.git"
+end
+
+git_source(:gitlab) do |repo_name|
+  "http://oauth:#{ENV['GITLAB_TOKEN']}@git.audienti.club:10080/#{repo_name}.git"
+end
+
 gem 'ice_cube', git: 'git://github.com/joelmeyerhamme/ice_cube.git', branch: 'master'
 gem 'simple_form'
 gem 'rails-i18n', '~> 4.0.0' # For 4.0.x
