@@ -129,18 +129,3 @@ module Schedulable
     end
   end
 end
-
-Kaminari.configure do |config|
-  config.page_method_name = :per_page_kaminari
-end
-
-module WillPaginate
-  module ActiveRecord
-    module RelationMethods
-      alias_method :total_count, :count
-    end
-  end
-end
-
-::ActiveRecord::Base.send :extend, Kaminari
-::ActiveRecord::Base.send :include, WillPaginate
